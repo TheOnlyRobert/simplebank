@@ -7,16 +7,31 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   test:
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: s3cr3t
+          POSTGRES_DB: simple_bank
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
 
+    steps:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
         go-version: 1.18
 
+    - uses: actions/checkout@v3
+
+    - name: Run migrations
+      run: make migrateup
+
     - name: Test
-      run: make test -v ./...
+      run: make test
